@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{BDC638EC-45BA-5023-6885-0BA624E5EF33}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "UdmyOSubSysCppUSrc",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		}
+	]
+}
