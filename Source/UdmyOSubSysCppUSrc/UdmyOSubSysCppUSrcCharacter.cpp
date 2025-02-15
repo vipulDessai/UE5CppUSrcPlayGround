@@ -56,20 +56,6 @@ AUdmyOSubSysCppUSrcCharacter::AUdmyOSubSysCppUSrcCharacter():
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-
-	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
-	if (OnlineSubsystem) {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Blue,
-				FString::Printf(TEXT("Found subsystem %s"), *OnlineSubsystem->GetSubsystemName().ToString())
-			);
-
-			OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
-		}
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -112,48 +98,53 @@ void AUdmyOSubSysCppUSrcCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 
 void AUdmyOSubSysCppUSrcCharacter::CreateGameSession()
 {
-	if (OnlineSessionInterface.IsValid()) {
-		auto ExistingSession = OnlineSessionInterface->GetNamedSession(NAME_GameSession);
+	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+	if (OnlineSubsystem)
+	{
+		IOnlineSessionPtr SessionInterface = OnlineSubsystem->GetSessionInterface();
+		if (SessionInterface.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Found subsystem %s"), *OnlineSubsystem->GetSubsystemName().ToString());
 
-		if (ExistingSession) {
-			OnlineSessionInterface->DestroySession(NAME_GameSession);
+			auto ExistingSession = SessionInterface->GetNamedSession(NAME_GameSession);
+
+			if (ExistingSession) {
+				SessionInterface->DestroySession(NAME_GameSession);
+			}
+
+			TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
+			SessionSettings->NumPublicConnections = 4;
+			SessionSettings->bShouldAdvertise = true;
+			SessionSettings->bUseLobbiesIfAvailable = true;
+
+			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+			if (LocalPlayer)
+			{
+				FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate = FOnCreateSessionCompleteDelegate::CreateUObject(this, &AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete);
+				SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
+
+				const FName SessionName = NAME_GameSession;
+				bool bWasSuccessful = SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), SessionName, *SessionSettings);
+
+				if (!bWasSuccessful)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("CreateSession returned false!"));
+				}
+			}
 		}
-
-		OnlineSessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
-
-		TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
-		SessionSettings->bIsLANMatch = false;
-		SessionSettings->NumPublicConnections = 4;
-		SessionSettings->bAllowJoinInProgress = true;
-		SessionSettings->bAllowJoinViaPresence = true;
-		SessionSettings->bShouldAdvertise = true;
-		SessionSettings->bUsesPresence = true;
-		const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-		OnlineSessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
 	}
 }
 
 void AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccess)
 {
-	if (bWasSuccess) {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Green,
-				FString::Printf(TEXT("Created Session: %s"), *SessionName.ToString())
-			);
-		}
+	if (bWasSuccess)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Session created (callback)!"));
+		GetWorld()->ServerTravel("ThirdPersonMap?listen");
 	}
-	else {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Red,
-				FString::Printf(TEXT("Failed to create session!!"))
-			);
-		}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Session creation failed (callback)!"));
 	}
 }
 
