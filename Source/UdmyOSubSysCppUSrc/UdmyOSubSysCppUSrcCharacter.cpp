@@ -13,6 +13,7 @@
 #include "Online.h" 
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "CreateSessionCallbackProxyAdvanced.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -146,6 +147,31 @@ void AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete(FName SessionName, bo
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Session creation failed (callback)!"));
 	}
+}
+
+void AUdmyOSubSysCppUSrcCharacter::CreateAdvGameSession()
+{
+	FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate;
+	OnCreateSessionCompleteDelegate.BindUObject(this, &AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete);
+
+	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
+	SessionSettings->NumPublicConnections = 4;
+	SessionSettings->bShouldAdvertise = true;
+	SessionSettings->bUseLobbiesIfAvailable = true;
+
+	// TODO: try to initialize the advanced sessions plugin 
+	//UCreateSessionCallbackProxyAdvanced::CreateAdvancedSession(
+	//	NAME_GameSession,
+	//	SessionSettings, // Make sure SessionSettings is configured
+	//	LocalPlayer,
+	//	4, // Public connections
+	//	true, // Use LAN
+	//	false, // Not a presence session
+	//	true, // Allow invites
+	//	true, // Allow join via presence
+	//	false, // Don't restrict presence joins to friends
+	//	OnCreateSessionCompleteDelegate
+	//);
 }
 
 void AUdmyOSubSysCppUSrcCharacter::Move(const FInputActionValue& Value)
