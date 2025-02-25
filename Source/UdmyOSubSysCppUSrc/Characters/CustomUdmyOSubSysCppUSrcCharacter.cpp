@@ -4,13 +4,13 @@
 #include "CustomCharacterMovementComponent.h"
 #include "CustomUdmyOSubSysCppUSrcCharacter.h"
 
-AMyUdmyOSubSysCppUSrcCharacter::AMyUdmyOSubSysCppUSrcCharacter(const FObjectInitializer& ObjectInitializer)
+ACustomUdmyOSubSysCppUSrcCharacter::ACustomUdmyOSubSysCppUSrcCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCustomCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 
 }
 
-UCustomCharacterMovementComponent* AMyUdmyOSubSysCppUSrcCharacter::GetCustomCharacterMovement() const
+UCustomCharacterMovementComponent* ACustomUdmyOSubSysCppUSrcCharacter::GetCustomCharacterMovement() const
 {
 	return GetCharacterMovement<UCustomCharacterMovementComponent>();
 }

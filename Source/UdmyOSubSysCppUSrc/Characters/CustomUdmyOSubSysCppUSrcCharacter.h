@@ -12,12 +12,12 @@ class UCustomCharacterMovementComponent;
  * 
  */
 UCLASS()
-class UDMYOSUBSYSCPPUSRC_API AMyUdmyOSubSysCppUSrcCharacter : public AUdmyOSubSysCppUSrcCharacter
+class UDMYOSUBSYSCPPUSRC_API ACustomUdmyOSubSysCppUSrcCharacter : public AUdmyOSubSysCppUSrcCharacter
 {
 	GENERATED_BODY()
 	
 public:
-	AMyUdmyOSubSysCppUSrcCharacter(const FObjectInitializer& ObjectInitializer);
+	ACustomUdmyOSubSysCppUSrcCharacter(const FObjectInitializer& ObjectInitializer);
 
 	/**
 	* Returns CustomCharacterMovementComponent subobject
