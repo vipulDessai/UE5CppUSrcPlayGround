@@ -47,7 +47,7 @@ class AUdmyOSubSysCppUSrcCharacter : public ACharacter
 	UInputAction* LookAction;
 
 public:
-	AUdmyOSubSysCppUSrcCharacter();
+	AUdmyOSubSysCppUSrcCharacter(const FObjectInitializer& ObjectInitializer);
 	
 
 protected:

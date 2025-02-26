@@ -20,7 +20,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AUdmyOSubSysCppUSrcCharacter
 
-AUdmyOSubSysCppUSrcCharacter::AUdmyOSubSysCppUSrcCharacter():
+AUdmyOSubSysCppUSrcCharacter::AUdmyOSubSysCppUSrcCharacter(const FObjectInitializer& ObjectInitializer):
 	CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete))
 {
 	// Set size for collision capsule

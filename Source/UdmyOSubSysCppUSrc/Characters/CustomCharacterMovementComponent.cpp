@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "CustomCharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PhysicsVolume.h"
@@ -28,6 +27,30 @@ void UCustomCharacterMovementComponent::BeginPlay()
 	CustomCharacter = Cast<ACustomUdmyOSubSysCppUSrcCharacter>(PawnOwner);
 }
 
+void UCustomCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
+{
+	Super::UpdateFromCompressedFlags(Flags);
+}
+
+void UCustomCharacterMovementComponent::MoveAutonomous(float ClientTimeStamp, float DeltaTime, uint8 CompressedFlags, const FVector& NewAccel)
+{
+	
+}
+
+FNetworkPredictionData_Client* UCustomCharacterMovementComponent::GetPredictionData_Client() const
+{
+	check(PawnOwner != NULL);
+
+	if (!ClientPredictionData)
+	{
+		UCustomCharacterMovementComponent* MutableThis = const_cast<UCustomCharacterMovementComponent*>(this);
+
+		MutableThis->ClientPredictionData = new FCustomNetworkPredictionData_Client_Character(*this);
+	}
+
+	return ClientPredictionData;
+}
+
 /** customized network orediction */
 bool FCustomCharacterNetworkMoveData::Serialize(UCharacterMovementComponent& CharacterMovement, FArchive& Ar, UPackageMap* PackageMap, ENetworkMoveType MoveType)
 {
@@ -41,6 +64,11 @@ void FCustomCharacterNetworkMoveData::ClientFillNetworkMoveData(const FSavedMove
 	Super::ClientFillNetworkMoveData(ClientMove, MoveType);
 
 	const FCustomSavedMove_Character& CurrentSavedMove = static_cast<const FCustomSavedMove_Character&>(ClientMove);
+}
+
+uint8 FCustomSavedMove_Character::GetCompressedFlags() const
+{
+	return Super::GetCompressedFlags();
 }
 
 bool FCustomSavedMove_Character::CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* Character, float MaxDelta) const
@@ -69,4 +97,27 @@ void FCustomSavedMove_Character::PrepMoveFor(ACharacter* Character)
 	if (CharacterMovementComponent)
 	{
 	}
+}
+
+void FCustomSavedMove_Character::Clear()
+{
+	Super::Clear();
+}
+
+FCustomNetworkPredictionData_Client_Character::FCustomNetworkPredictionData_Client_Character(const UCharacterMovementComponent& ClientMovement)
+	: Super(ClientMovement)
+{
+	
+}
+
+FSavedMovePtr FCustomNetworkPredictionData_Client_Character::AllocateNewMove()
+{
+	return FSavedMovePtr(new FCustomSavedMove_Character());
+}
+
+FCustomCharacterNetworkMoveDataContainer::FCustomCharacterNetworkMoveDataContainer()
+{
+	NewMoveData = &CustomDefaultMoveData[0];
+	PendingMoveData = &CustomDefaultMoveData[1];
+	OldMoveData = &CustomDefaultMoveData[2];
 }

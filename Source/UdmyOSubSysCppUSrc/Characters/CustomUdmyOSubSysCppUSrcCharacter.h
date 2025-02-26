@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../UdmyOSubSysCppUSrcCharacter.h"
-#include "MyUdmyOSubSysCppUSrcCharacter.generated.h"
+#include "CustomUdmyOSubSysCppUSrcCharacter.generated.h"
 
 // forward declare a class, instead of having them as header files which slows down compile time
 class UCustomCharacterMovementComponent;
