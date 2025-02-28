@@ -16,6 +16,10 @@ public:
 	virtual bool Serialize(UCharacterMovementComponent& CharacterMovement, FArchive& Ar, UPackageMap* PackageMap, ENetworkMoveType MoveType) override;
 
 	virtual void ClientFillNetworkMoveData(const FSavedMove_Character& ClientMove, ENetworkMoveType MoveType) override;
+
+	//All Saved Variables are placed here.
+	//Boolean Flags
+	bool bWantsToSprintMoveData = false;
 };
 
 class FCustomSavedMove_Character : public FSavedMove_Character
@@ -24,6 +28,9 @@ public:
 
 	typedef FSavedMove_Character Super;
 
+	//All Saved Variables are placed here.
+	//Boolean Flags
+	bool bWantsToSprintSaved = false;
 
 	/** Returns a byte containing encoded special movement information (jumping, crouching, etc.)	 */
 	virtual uint8 GetCompressedFlags() const override;
@@ -81,6 +88,52 @@ public:
 	//Reference to the network predidtion buddy, the custom saved move class created above.
 	friend class FCustomSavedMove;
 
+	/////BEGIN Sprinting/////
+
+	/*
+	* Sprinting is different from other movement types. We don't need to add a whole new movement mode as we are simply adjusting the max movement speed.
+	* If it requires additional logic in your game, you can certainly create a sprinting movement mode, but it isn't necessary for most use cases.
+	* We will still be using the PhysWalking logic in this implementation.
+	* Thus, this can be seen as a movement modifier, not a new movement type.
+	*/
+
+	/*
+	* We create two variables here. This one tracks player intent, such as holding the sprint button down or toggling it.
+	* While the player intends to sprint, the movement can use this information to trigger different logic. We can even re-use it to act as an indicator to start wall-running, for instance.
+	* In this case, if the player intends to sprint but isn't sprinting, we trigger sprinting.
+	* Similarly, if the sprinting is interrupted, we would want to resume sprinting as soon as possible.
+	* The implementation of this logic may differ in a GAS (Gameplay Ability System) setup where this variable will be controlled by Gameplay Abilities (GA) and Gameplay Effects (GE).
+	* We do not replicate the variable as it's only really relevant to the owning client and the server.
+	* The network prediction setup will ensure sync between owning client and server.
+	*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Sprinting")
+	bool bWantsToSprint;
+
+	/*
+	* This variable controls the actual sprinting logic. If it's true, the character will be moving at a higher velocity.
+	* It can be used as an internal CMC variable to track a gameplay tag that is applied/removed by GAS (e.g. State.Movement.Sprinting or State.Buff.Sprinting, depending on preference and design).
+	* But in this basic tutorial, we will use it directly.
+	* This is replicated as we want this variable to propagate down to simulated proxies (other clients).
+	*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "Sprinting")
+	bool bIsSprinting;
+
+	/*
+	* The current maximum speed that the character can run.
+	*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sprinting")
+	float CustomMaxSpeed = 1000.0f;
+
+	/*
+	* A simple function to determine if the character is able to sprint in its current state.
+	* This function does not factor in external state information at the moment.
+	* If used with GAS, this could be a helper function to determine if the Sprint Ability can be applied or not, alongside the use of gameplay tags and other checks.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Sprinting")
+	virtual bool CanSprint() const;
+
+	/////END Sprinting/////
+
 protected:
 
 	/** Character movement component belongs to */
@@ -92,6 +145,26 @@ public:
 	//BEGIN UActorComponent Interface
 	virtual void BeginPlay() override;
 	//END UActorComponent Interface
+
+	//BEGIN UMovementComponent Interface
+	virtual float GetMaxSpeed() const override;
+
+	/** Update the character state in PerformMovement right before doing the actual position change */
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
+
+	/** Update the character state in PerformMovement after the position change. Some rotation updates happen after this. */
+	virtual void UpdateCharacterStateAfterMovement(float DeltaSeconds) override;
+
+	/** Consider this to be the final chance to change logic before the next tick. It can be useful to defer certain actions to the next tick. */
+	virtual void OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity) override;
+
+	/** Override jump behaviour to help us create custom logic. */
+	virtual bool CanAttemptJump() const override;
+	virtual bool DoJump(bool bReplayingMoves) override;
+	//END UMovementComponent Interface
+
+	//Replication. Boilerplate function that handles replicated variables. 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	//New move data container
