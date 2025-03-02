@@ -20,8 +20,8 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AUdmyOSubSysCppUSrcCharacter
 
-AUdmyOSubSysCppUSrcCharacter::AUdmyOSubSysCppUSrcCharacter(const FObjectInitializer& ObjectInitializer):
-	CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete))
+AUdmyOSubSysCppUSrcCharacter::AUdmyOSubSysCppUSrcCharacter(const FObjectInitializer& ObjectInitializer)
+	//CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete))
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -57,6 +57,16 @@ AUdmyOSubSysCppUSrcCharacter::AUdmyOSubSysCppUSrcCharacter(const FObjectInitiali
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	// Set a high replication frequency for simulated proxies
+	if (!IsLocallyControlled())
+	{
+		NetUpdateFrequency = 100.0f;
+	}
+	else
+	{
+		NetUpdateFrequency = 30.0f;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,82 +107,82 @@ void AUdmyOSubSysCppUSrcCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 	}
 }
 
-void AUdmyOSubSysCppUSrcCharacter::CreateGameSession()
-{
-	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
-	if (OnlineSubsystem)
-	{
-		IOnlineSessionPtr SessionInterface = OnlineSubsystem->GetSessionInterface();
-		if (SessionInterface.IsValid())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Found subsystem %s"), *OnlineSubsystem->GetSubsystemName().ToString());
-
-			auto ExistingSession = SessionInterface->GetNamedSession(NAME_GameSession);
-
-			if (ExistingSession) {
-				SessionInterface->DestroySession(NAME_GameSession);
-			}
-
-			TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
-			SessionSettings->NumPublicConnections = 4;
-			SessionSettings->bShouldAdvertise = true;
-			SessionSettings->bUseLobbiesIfAvailable = true;
-
-			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-			if (LocalPlayer)
-			{
-				FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate = FOnCreateSessionCompleteDelegate::CreateUObject(this, &AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete);
-				SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
-
-				const FName SessionName = NAME_GameSession;
-				bool bWasSuccessful = SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), SessionName, *SessionSettings);
-
-				if (!bWasSuccessful)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("CreateSession returned false!"));
-				}
-			}
-		}
-	}
-}
-
-void AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccess)
-{
-	if (bWasSuccess)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Session created (callback)!"));
-		GetWorld()->ServerTravel("ThirdPersonMap?listen");
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Session creation failed (callback)!"));
-	}
-}
-
-void AUdmyOSubSysCppUSrcCharacter::CreateAdvGameSession()
-{
-	FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate;
-	OnCreateSessionCompleteDelegate.BindUObject(this, &AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete);
-
-	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
-	SessionSettings->NumPublicConnections = 4;
-	SessionSettings->bShouldAdvertise = true;
-	SessionSettings->bUseLobbiesIfAvailable = true;
-
-	// TODO: try to initialize the advanced sessions plugin 
-	//UCreateSessionCallbackProxyAdvanced::CreateAdvancedSession(
-	//	NAME_GameSession,
-	//	SessionSettings, // Make sure SessionSettings is configured
-	//	LocalPlayer,
-	//	4, // Public connections
-	//	true, // Use LAN
-	//	false, // Not a presence session
-	//	true, // Allow invites
-	//	true, // Allow join via presence
-	//	false, // Don't restrict presence joins to friends
-	//	OnCreateSessionCompleteDelegate
-	//);
-}
+//void AUdmyOSubSysCppUSrcCharacter::CreateGameSession()
+//{
+//	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+//	if (OnlineSubsystem)
+//	{
+//		IOnlineSessionPtr SessionInterface = OnlineSubsystem->GetSessionInterface();
+//		if (SessionInterface.IsValid())
+//		{
+//			UE_LOG(LogTemp, Warning, TEXT("Found subsystem %s"), *OnlineSubsystem->GetSubsystemName().ToString());
+//
+//			auto ExistingSession = SessionInterface->GetNamedSession(NAME_GameSession);
+//
+//			if (ExistingSession) {
+//				SessionInterface->DestroySession(NAME_GameSession);
+//			}
+//
+//			TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
+//			SessionSettings->NumPublicConnections = 4;
+//			SessionSettings->bShouldAdvertise = true;
+//			SessionSettings->bUseLobbiesIfAvailable = true;
+//
+//			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+//			if (LocalPlayer)
+//			{
+//				FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate = FOnCreateSessionCompleteDelegate::CreateUObject(this, &AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete);
+//				SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
+//
+//				const FName SessionName = NAME_GameSession;
+//				bool bWasSuccessful = SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), SessionName, *SessionSettings);
+//
+//				if (!bWasSuccessful)
+//				{
+//					UE_LOG(LogTemp, Warning, TEXT("CreateSession returned false!"));
+//				}
+//			}
+//		}
+//	}
+//}
+//
+//void AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccess)
+//{
+//	if (bWasSuccess)
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Session created (callback)!"));
+//		GetWorld()->ServerTravel("ThirdPersonMap?listen");
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Session creation failed (callback)!"));
+//	}
+//}
+//
+//void AUdmyOSubSysCppUSrcCharacter::CreateAdvGameSession()
+//{
+//	FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate;
+//	OnCreateSessionCompleteDelegate.BindUObject(this, &AUdmyOSubSysCppUSrcCharacter::OnCreateSessionComplete);
+//
+//	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
+//	SessionSettings->NumPublicConnections = 4;
+//	SessionSettings->bShouldAdvertise = true;
+//	SessionSettings->bUseLobbiesIfAvailable = true;
+//
+//	// TODO: try to initialize the advanced sessions plugin 
+//	//UCreateSessionCallbackProxyAdvanced::CreateAdvancedSession(
+//	//	NAME_GameSession,
+//	//	SessionSettings, // Make sure SessionSettings is configured
+//	//	LocalPlayer,
+//	//	4, // Public connections
+//	//	true, // Use LAN
+//	//	false, // Not a presence session
+//	//	true, // Allow invites
+//	//	true, // Allow join via presence
+//	//	false, // Don't restrict presence joins to friends
+//	//	OnCreateSessionCompleteDelegate
+//	//);
+//}
 
 void AUdmyOSubSysCppUSrcCharacter::Move(const FInputActionValue& Value)
 {

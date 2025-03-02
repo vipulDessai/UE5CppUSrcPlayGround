@@ -71,20 +71,20 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-public:
-	// Pointer to the online session interface
-	IOnlineSessionPtr OnlineSessionInterface;
-
-protected:
-	UFUNCTION(BlueprintCallable)
-	void CreateGameSession();
-
-	void OnCreateSessionComplete(FName SessionName, bool bWasSuccess);
-
-	UFUNCTION(BlueprintCallable)
-	void CreateAdvGameSession();
-
-private:
-	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
+//public:
+//	// Pointer to the online session interface
+//	IOnlineSessionPtr OnlineSessionInterface;
+//
+//protected:
+//	UFUNCTION(BlueprintCallable)
+//	void CreateGameSession();
+//
+//	void OnCreateSessionComplete(FName SessionName, bool bWasSuccess);
+//
+//	UFUNCTION(BlueprintCallable)
+//	void CreateAdvGameSession();
+//
+//private:
+//	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
 };
 

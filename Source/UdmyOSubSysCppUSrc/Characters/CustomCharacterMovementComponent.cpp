@@ -74,12 +74,14 @@ void UCustomCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, co
 
 bool UCustomCharacterMovementComponent::CanAttemptJump() const
 {
-	return false;
+	return IsJumpAllowed() &&
+		!bWantsToCrouch &&
+		(IsMovingOnGround() || IsFalling()); // Falling included for double-jump and non-zero jump hold time, but validated by character.
 }
 
 bool UCustomCharacterMovementComponent::DoJump(bool bReplayingMoves)
 {
-	return false;
+	return Super::DoJump(bReplayingMoves);
 }
 
 void UCustomCharacterMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
