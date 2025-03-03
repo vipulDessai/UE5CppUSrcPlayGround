@@ -71,6 +71,7 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+// START - raw online subsystem create sesssion 
 //public:
 //	// Pointer to the online session interface
 //	IOnlineSessionPtr OnlineSessionInterface;
@@ -86,5 +87,6 @@ public:
 //
 //private:
 //	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
+// END - raw online subsystem create sesssion 
 };
 
